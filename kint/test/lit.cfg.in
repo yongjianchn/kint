@@ -1,0 +1,24 @@
+config.name             = "@PACKAGE@"
+config.test_format      = lit.formats.ShTest()
+config.suffixes         = ['.c']
+
+config.target_triple    = "@host@"
+config.test_exec_root   = "@abs_builddir@"
+config.test_source_root = "@abs_srcdir@"
+
+import os, os.path
+
+if 'LLVMCC' in os.environ:
+	config.environment['LLVMCC'] = os.getenv('LLVMCC')
+
+llvm_obj_root = lit.util.capture(['llvm-config', '--obj-root']).strip()
+llvm_build_mode = lit.util.capture(['llvm-config', '--build-mode']).strip()
+llvm_bindir = os.path.join(llvm_obj_root, llvm_build_mode, 'bin')
+kint_bindir = os.path.join("@abs_top_builddir@", 'bin')
+path = os.path.pathsep.join( (kint_bindir, config.test_source_root, llvm_bindir, config.environment['PATH']) )
+config.environment['PATH'] = path
+
+cc      = 'kint-cc1 -c -o -'
+linuxcc = 'kint-cc1 -nostdinc -fno-builtin -c -o -'
+config.substitutions.append( ('%cc', cc) )
+config.substitutions.append( ('%linuxcc', linuxcc) )

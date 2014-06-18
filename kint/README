@@ -1,0 +1,93 @@
+See INSTALL for build instructions or download prebuilt binaries.
+Make sure Kint binaries are in the PATH.
+
+
+Preparation
+-----------
+
+Kint works on LLVM bitcode.  To analyze a software project, the
+first step is to generate LLVM bitcode.  Kint provides a script
+called `kint-build`, which both calls gcc (or g++) and in parallel
+uses Clang to obtain LLVM bitcode from your source code, stored in
+.ll files. For example:
+
+	$ cd /path/to/your/project
+	$ kint-build make
+
+
+Integer overflow checker
+------------------------
+
+To find integer overflows, you can first run Kint's global analysis
+on the generated LLVM bitcode (the .ll files) to generate some
+whole-program constraints that will reduce false positives in the
+subsequent analysis steps.  This step is optional, and if it doesn't
+work (e.g., due to some bug), you can skip it and continue on to
+the next step.
+
+This global analysis writes its output back to the LLVM bitcode .ll
+files, so it produces no terminal output (unless you specify the
+-v flag).  In our example, you can run the global analysis as
+follows:
+
+	$ find . -name "*.ll" > bitcode.lst
+	$ intglobal @bitcode.lst
+
+Finally, run the following command in the project directory.
+
+	$ pintck
+
+You can find bug reports in `pintck.txt`.
+
+
+Taint annotation
+------------------------
+
+To help you focus on high-risk reports, the global analysis performs
+taint analysis that marks values derived from untrusted inputs in the
+generated LLVM bitcode.  You can tell Kint what is taint source by
+annotating the target software's source code with this intrinsic
+function:
+
+	int __kint_taint(const char *description, value, ...);
+
+Kint will mark the second argument (value) as a taint source. 'value'
+can be of any integer or pointer types. The return value of
+__kint_taint(), if used, is also considered as a taint.
+
+For Linux kernel, for example, we redefined the macro copy_from_user()
+and get_user() as follows:
+
+	#define copy_from_user(to, from, n) \
+		__kint_taint("copy_from_user", (to), from, n)
+	#define get_user(x, ptr) \
+		({ (x) = *(ptr); __kint_taint("get_user", (x)); })
+
+To annotate sensitive contexts (taint sinks, such as allocation
+sizes), you should change annotateSink() in Kint's src/Annotation.cc.
+Each pair in the 'Allocs' array specifies a function name and which of
+its argument is sensitive. Kint will highlight the report if it sees a
+tainted and overflowed value reaches that argument.
+
+You can obtain our annotated linux kernel source as follows:
+
+	$ git clone -b kint git://g.csail.mit.edu/kint-linux
+
+
+Tautological comparison checker
+-------------------------------
+
+Tautological control flow decisions (i.e., branches that are always
+taken or never taken) are often indicative of bugs.  To find them,
+simply run the following command in the project directory.
+
+	$ pcmpck
+
+You can find bug reports in `pcmpck.txt`.
+
+
+Contact
+-------
+
+If you find any bugs in Kint, feel free to contact us: you can send
+us email at int@pdos.csail.mit.edu.

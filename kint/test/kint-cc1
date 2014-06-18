@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import sys
+
+def cc(llvmcc, src, argv):
+	out = [i for i, x in enumerate(argv) if x == '-o']
+	if not out:
+		out = src
+	else:
+		out = argv[out[-1] + 1]
+	if out != '-':
+		out = os.path.splitext(out)[0] + '.ll'
+	argv += ['-o', '-']
+	# Remove profiling flags.
+	argv = [x for x in argv if x not in ['-pg', '-fprofile-arcs', '-ftest-coverage']]
+	# Remove warning flags.
+	argv = [x for x in argv if not x.startswith('-W')]
+	# Linux kernel hack: disable asm goto.
+	argv = [x for x in argv if x != '-DCC_HAVE_ASM_GOTO']
+	# Use -fstrict-overflow to distinguish signed/unsigned integers.
+	more = ['-S', '-flto', '-fstrict-overflow', '-O0', '-g']
+	p1 = subprocess.Popen(llvmcc + argv + more + [src], stdout=subprocess.PIPE)
+	# Don't invoke -early-cse, which may hide undefined behavior bugs.
+	opts = ['-strip-debug-declare', '-simplifycfg', '-scalarrepl', '-lower-expect']
+	p2 = subprocess.Popen(['opt', '-S', '-o', out] + opts, stdin=p1.stdout)
+	p1.stdout.close()
+	p2.communicate()
+	return p1.returncode
+
+def main():
+	llvmcc = os.getenv('LLVMCC', 'clang -no-integrated-as').split(' ', 1)
+	argv = sys.argv[1:]
+	exts = ['.c', '.cc', '.cpp', '.cxx', '.C']
+	# Keep silence for preprocesssing and make depend.
+	if any(a in argv for a in ['-E', '-M', '-MM']):
+		return
+	# Extrace input source files.
+	srcs = [a for a in argv if os.path.splitext(a)[1] in exts]
+	# Keep silence if only '-' is given; otherwise we need to duplicate
+	# data from stdin for the next consumer (e.g., gcc).
+	if not srcs:
+		return
+	# Remove source files froma args.
+	argv = [x for x in argv if x not in srcs]
+	for s in srcs:
+		rc = cc(llvmcc, s, list(argv))
+	sys.exit(rc)
+
+if __name__ == '__main__':
+	main()
