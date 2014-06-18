@@ -4,3 +4,4 @@ echo $TOP
 cd - 
 export PATH=$TOP/llvm-3.1/install/bin:${PATH}
 export PATH=$TOP/kint/build/bin:$PATH
+export PATH=$TOP/inserttrap/:$PATH
