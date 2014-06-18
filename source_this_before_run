@@ -1,0 +1,6 @@
+cd $(dirname $(readlink -f ${BASH_SOURCE[0]}) )
+thisdir=`pwd`
+echo $thisdir
+cd - 
+export PATH=$thisdir/llvm-build/Release+Debug+Asserts/bin:$PATH
+export PATH=$thisdir/kint/build/bin:$PATH
