@@ -369,7 +369,7 @@ bool IntRewrite::runOnFunction(Function &F) {
 		//findSatICmp = (check_pre_cmp_condition(I) && check_fol_call_condition(I)) || check_data_input_condition(I);
 		//findSatICmp = true;
 		
-		if(findSatICmp){
+	//	if(findSatICmp){
 			switch (I->getOpcode()) {
 			default:
 				findSatICmp = false;
@@ -406,8 +406,8 @@ bool IntRewrite::runOnFunction(Function &F) {
 				break;
 			}
 			//reset findSatICmp flag
-			findSatICmp = false;
-		}
+	//		findSatICmp = false;
+	//	}
 		////////////////////////////////////////////////
 		
 /*		switch (I->getOpcode()) {
