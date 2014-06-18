@@ -1,5 +1,5 @@
 --- ../../../kint-origin/kint/src/IntRewrite.cc	2014-01-18 10:25:43.112454909 +0800
-+++ ./IntRewrite.cc	2014-06-18 10:50:51.603491776 +0800
++++ kint/src/IntRewrite.cc	2014-06-18 10:50:51.603491776 +0800
 @@ -16,6 +16,9 @@
  #include <llvm/Support/GetElementPtrTypeIterator.h>
  #include <llvm/Support/InstIterator.h>

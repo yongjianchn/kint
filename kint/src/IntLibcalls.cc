@@ -4,6 +4,8 @@
 #include <llvm/Module.h>
 #include <llvm/Pass.h>
 #include <llvm/Support/InstIterator.h>
+//add by wh
+#include <llvm/Support/raw_ostream.h>
 
 using namespace llvm;
 
@@ -85,6 +87,13 @@ void IntLibcalls::rewriteSize(Function *F) {
 	}
 }
 
+///////////////////wh
+void toString(Value *v, std::string &Str) {
+	llvm::raw_string_ostream OS(Str);
+	v->getType()->print(OS);;
+}
+///////////////////
+
 void IntLibcalls::rewriteSizeAt(CallInst *I, NamedParam *NPs) {
 	StringRef Name = I->getCalledFunction()->getName();
 	for (NamedParam *NP = NPs; NP->Name; ++NP) {
@@ -95,6 +104,29 @@ void IntLibcalls::rewriteSizeAt(CallInst *I, NamedParam *NPs) {
 		assert(T->isIntegerTy());
 		Builder->SetInsertPoint(I);
 		Value *V = Builder->CreateICmpSLT(Arg, Constant::getNullValue(T));
+		
+		//////////wh
+		std::string Anno = "size.";
+		std::string type;
+		toString(Arg, type);
+		Anno.append(type);
+		Anno.append(".p");
+		switch(NP->Index) {
+			case 1:
+				Anno.append("1.");
+				break;
+			case 2:
+				Anno.append("2.");
+				break;
+			case 3:
+				Anno.append("3.");
+				break;
+			default:break;
+		}
+		Anno.append(NP->Name);
+		StringRef m_Anno(Anno);
+		//////////
+		
 		insertIntSat(V, I, "size");
 	}
 }

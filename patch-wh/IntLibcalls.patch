@@ -1,5 +1,5 @@
 --- ../../kint-org/src/IntLibcalls.cc	2013-11-16 18:38:40.347782729 +0800
-+++ IntLibcalls.cc	2013-11-12 21:57:28.249713870 +0800
++++ kint/src/IntLibcalls.cc	2013-11-12 21:57:28.249713870 +0800
 @@ -4,6 +4,8 @@
  #include <llvm/Module.h>
  #include <llvm/Pass.h>
