@@ -38,19 +38,23 @@ echo "Download sources successfully."
 echo "Configuring llvm start..."
 [ -d build ] || mkdir build
 cd build
-[ -f Makefile ] || ../llvm/configure --enable-optimized --enable-targets=host --enable-bindings=none --enable-shared --enable-debug-symbols
+[ -f Makefile ] || ../llvm/configure --enable-optimized --enable-targets=host --enable-bindings=none --enable-shared --enable-debug-symbols --prefix=$(pwd)/../install
 if [ $? != 0 ]; then
 	echo "Configuring llvm failed, stop."
 	exit 1
 fi
 echo "Building llvm start..."
 make -j `cat /proc/cpuinfo | grep processor |wc -l`
+#this may got some errors, but not important
+make install
 if [ $? != 0 ]; then
 	echo "Building llvm failed, stop."
 	exit 1
 fi
 
-export PATH=${TOP}/llvm-build/Release+Debug+Asserts/bin:${PATH}
+export PATH=${TOP}/llvm-3.1/install/bin:${PATH}
+export C_INCLUDE_PATH=${TOP}/llvm-3.1/install/include:${C_INCLUDE_PATH}
+export LD_LIBRARY_PATH=${TOP}/llvm-3.1/install/lib:${LD_LIBRARY_PATH}
 
 #判断是否配置好llvm&clang 3.1的环境
 clang_path=$(which clang)
@@ -85,7 +89,8 @@ cd build/
 ../configure
 make -j `cat /proc/cpuinfo | grep processor |wc -l` 
 if [ $? != 0 ]; then
-    echo "Build kint failed, test stop."
+    echo "Build kint failed, test stop. "
+	echo "Try to erase '-Werror' flags in $(pwd)/src/Makefile and make again"
     exit 1
 fi
 echo "Build kint successfully."
