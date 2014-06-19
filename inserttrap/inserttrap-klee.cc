@@ -730,9 +730,11 @@ bool create_ovf_func(string *code, string int_type, string *func, int &first_op,
 	func->append(right_operand);
 	func->append(";");
 	
-	func->append("klee_detect_int(&templ");
+	func->append("klee_detect_int(templ");
+	//func->append("klee_detect_int(&templ");
 	func->append(var_num);
-	func->append(", &tempr");
+	//func->append(", &tempr");
+	func->append(", tempr");
 	func->append(var_num);
 	func->append(", ");
 		
@@ -1244,8 +1246,8 @@ void insert_flag(li loc, FILE *fp) {
 			final.append(loc_line);
 			final.append("\";");
 			//final.append("klee_message(info");
-			final.append(var_num);
-			final.append(");");
+			//final.append(var_num);
+			//final.append(");");
 			
 			final.append(function);
 			
